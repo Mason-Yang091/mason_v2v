@@ -93,10 +93,24 @@ def state_monitor():
         time.sleep(0.1)
 
 def receiver_start():
-
+    if os.path.exists('receiver_tmp/received.json') == False:
+        print('no received json in receiver_tmp/received.json')
+        return
+    
     # convert json to text
     # api_json_to_txt(input_path='receiver_tmp/received.json' , output_path='receiver_tmp/received.txt')
     #json_to_txt_pipeline(input_path='receiver_tmp/received.json', output_path='receiver_tmp/received.txt')
+    # 2. 讀取 received.json 的內容
+    with open('receiver_tmp/received.json', "r", encoding="utf-8") as json_file:
+        data = json.load(json_file)
+
+    # 3. 取得 "傳達訊息" 的內容
+    message = data.get("傳達訊息", "")  # 如果 key 不存在，回傳空字串
+    window.mainScreen_display(message)
+
+    # 4. 將訊息寫入 received.txt
+    with open('receiver_tmp/received.txt', "w", encoding="utf-8") as txt_file:
+        txt_file.write(message)
     # convert text to voice
     txt_to_wav(input_path='receiver_tmp/received.txt', output_path='receiver_tmp/received.wav')
     # play the audio
@@ -123,6 +137,8 @@ def sender_start():
             content = f.read()
             print("[Transcript] sender.txt內容如下：")
             print(content)
+    with open("sender_tmp/sender.txt", "a", encoding="utf-8") as file:
+        file.write(f"。我的車牌號碼是{get_car_id()}")  # 自動寫到檔案末尾
 
     api_txt_to_json( input_path= 'sender_tmp/sender.txt', output_path= 'sender_tmp/sender.json')
 
@@ -146,7 +162,8 @@ def sender_start():
             check_content = f.read().strip()
 
         # 合併內容
-        final_text = f"目標車輛是 {target_id} {check_content}"
+        final_text = f"目標車輛是 {target_id} ，你想傳送的內容是：{check_content}"
+        window.mainScreen_display(f"You:{target_id}\n{check_content}")
 
         # 寫入 my_check.txt
         with open('sender_tmp/my_check.txt', 'w', encoding='utf-8') as f:
@@ -175,14 +192,18 @@ def sender_start():
             sender_data = json.load(f)
             target_id = sender_data.get("傳給的車牌號碼")
 
-        # 讀取 check.txt 作為訊息內容
+        # 讀取 sender.json 的內容
+        with open('sender_tmp/sender.json', "r", encoding="utf-8") as json_file:
+            load_json = json.load(json_file)
+        # 讀取 check.txt 訊息內容
         with open('sender_tmp/check.txt', 'r', encoding='utf-8') as f:
             message = f.read()
-
+        # modify "傳達訊息" in sender.json
+        load_json["傳達訊息"] = message
         # 傳送
         if target_id:
-            send_to(target_id, message)
-            print("sented!")
+            send_to(target_id, load_json)
+            print("sent!")
         else:
             print("[Error] 找不到車牌號碼")
     
@@ -225,19 +246,39 @@ def wait_for_user_input(timeout=10):
 
 
 def handle_incoming(data):
-    global receive_or_not
-    receive_or_not = True
-    print(f"[Main got message] {data}")
-    # 指定儲存的目錄和檔案名稱
-    directory = "receiver_tmp"
-    filename = "received.txt"
-    filepath = os.path.join(directory, filename)
-    
-    # 將 json_data 寫入檔案
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(data)
+    '''
+    data = dict: {"correctness":, "來自的車牌號碼":, "傳給的車牌號碼":, "傳達訊息":}
+    '''
+    ###   display   ###
+    if data.get("來自的車牌號碼") == "server":
+        ##from server -> screen manage
+        inform = data.get("傳達訊息")  #(car_id, "delete") or (car_id, "add") or (online_cars, "include")
+        if inform[1] == "add":
+            window.plate_manager.add_plate(inform[0])
+        elif inform[1] == "delete":
+            window.plate_manager.delete_plate(inform[0])
+        elif inform[1] == "include": # online_cars is a list of str
+            online_cars = inform[0]
+            for car in online_cars:
+                window.plate_manager.add_plate(car) 
 
-    ### there should call a function to do sth
+    else:
+        global receive_or_not
+        receive_or_not = True
+        print(f"[Main got message] {data}")
+
+        ### display ###
+        window.plate_manager.move_plate_to_top(data.get("來自的車牌號碼"))
+        # 指定儲存的目錄和檔案名稱
+        directory = "receiver_tmp"
+        filename = "received.json"
+        filepath = os.path.join(directory, filename)
+        
+        # 將 json_data 寫入檔案
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+        ### there should call a function to do sth
 
 
 
@@ -245,15 +286,17 @@ if __name__== "__main__":
     ##set CarID
     carID = input('your car ID: ')
     set_car_id(carID)
+
+    ###   display first   ###
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+
+
     ##設定receiver function註冊
     set_on_message_callback(handle_incoming)
     ##接上server
     connect_with_retry()
-
-    ###   display   ###
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
 
     threading.Thread(target=state_monitor, daemon=True).start()
     threading.Thread(target=sio.wait, daemon=True).start()

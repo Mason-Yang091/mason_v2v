@@ -82,7 +82,14 @@ def wav_to_txt(
     model_size: str = "base",
     max_size_mb: int = 200,
     language: str = "zh",
-    initial_prompt: str = "以下是普通話的句子。"
+    initial_prompt: str = """
+    以下是普通話的句子。
+    其中高機率會有一個車牌號碼
+    車牌號碼的格式是三個英文字母+四個數字
+    請不要在這七個字符之間加"-"或者空格。
+    另外，此對話情境是在車上與它車對話，
+    因此對話內容高機率會是行車中的相關內容。
+    """
 ) -> str:
 
     # 檢查檔案大小

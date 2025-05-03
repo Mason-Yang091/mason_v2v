@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
     QScrollArea, QFrame, QSizePolicy
 )
-from PySide6.QtCore import Qt, QTimer, Signal, QObject
+from PySide6.QtCore import Qt, QTimer, Signal, QObject, QMetaObject
 from PySide6.QtGui import QFont
 
 class CarPlateManager(QObject):
@@ -65,7 +65,7 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("車牌系統")
-        self.setFixedSize(1200, 800)
+        self.setFixedSize(600, 400)
         self.setStyleSheet("background-color: #1a1a2e;")
 
         self.plate_manager = CarPlateManager()
@@ -76,12 +76,12 @@ class MainWindow(QWidget):
 
     def setup_ui(self):
         main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
 
         # 左側
         self.main_display = RoundedFrame()
-        self.main_display.setFixedSize(800, 760)
+        self.main_display.setFixedSize(400, 380)
         self.main_display.setStyleSheet(frame_style())
         main_display_layout = QVBoxLayout(self.main_display)
 
@@ -92,11 +92,11 @@ class MainWindow(QWidget):
 
         # 右側
         right_side = QVBoxLayout()
-        right_side.setSpacing(20)
+        right_side.setSpacing(10)
 
         # 時間
         self.time_display = RoundedFrame()
-        self.time_display.setFixedSize(340, 100)
+        self.time_display.setFixedSize(170, 50)
         self.time_display.setStyleSheet(frame_style())
         time_layout = QVBoxLayout(self.time_display)
         self.time_label = QLabel()
@@ -106,7 +106,7 @@ class MainWindow(QWidget):
 
         # 車牌清單
         self.plate_display = RoundedFrame()
-        self.plate_display.setFixedSize(340, 640)
+        self.plate_display.setFixedSize(170, 320)
         self.plate_display.setStyleSheet(frame_style())
         plate_layout = QVBoxLayout(self.plate_display)
 
@@ -118,8 +118,8 @@ class MainWindow(QWidget):
 
         self.plate_container = QWidget()
         self.plate_container_layout = QVBoxLayout(self.plate_container)
-        self.plate_container_layout.setContentsMargins(10, 10, 10, 10)
-        self.plate_container_layout.setSpacing(10)
+        self.plate_container_layout.setContentsMargins(5, 5, 5, 5)
+        self.plate_container_layout.setSpacing(5)
         self.plate_container_layout.setAlignment(Qt.AlignTop)
         scroll.setWidget(self.plate_container)
 
@@ -159,7 +159,7 @@ class MainWindow(QWidget):
 
         for plate in self.plate_manager.plates:
             label = QLabel(plate)
-            label.setFixedHeight(50)
+            label.setFixedHeight(25)
             label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
             label.setAlignment(Qt.AlignCenter)
 

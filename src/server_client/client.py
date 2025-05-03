@@ -16,7 +16,7 @@ def set_car_id(car_id: str):
     CAR_ID = car_id
     print(f"carid = {car_id}")
     
-SERVER_URL = 'http://10.10.22.51:5000'  # 換成你的伺服器IP
+SERVER_URL = 'http://10.10.22.148:5000'  # 換成你的伺服器IP
 
 # 排隊的訊息 (deque：快速先進先出)
 message_queue = deque()
@@ -145,6 +145,8 @@ def connect_with_retry():
             print(f"[Connect Failed] {e}")
             print("[Retry] Waiting 3 seconds...")
             time.sleep(3)
+def get_car_id():
+    return CAR_ID
 
 
 if __name__ == "__main__":
