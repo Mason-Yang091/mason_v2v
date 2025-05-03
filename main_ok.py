@@ -182,6 +182,9 @@ def sender_start():
             print("[Info] 使用者選擇重錄或超時未操作，重新開始錄音。")
             sender_start()
             return  # 終止當前流程，避免繼續往下執行
+        elif user_choice == "dont_send_and_quit":
+            print("[Info] 使用者選擇離開並不送出。")
+            return
         else:
             print("[Info] 使用者確認內容，繼續傳送。")
         ###
@@ -216,7 +219,7 @@ def sender_start():
 
  
 def wait_for_user_input(timeout=10):
-    print(f"[請在 {timeout} 秒內按空白鍵確認，或直接 Enter 取消]")
+    print(f"[請在 {timeout} 秒內按空白鍵確認，或直接 Enter 重錄，或 ESC 離開這段對話並不送出。]")
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
     try:
@@ -227,15 +230,14 @@ def wait_for_user_input(timeout=10):
             if select.select([sys.stdin], [], [], 0.1)[0]:
                 ch = sys.stdin.read(1)
                 if ch == '\n':
-                    if buffer == "":
-                        print("[Enter] 被取消，重錄。")
-                        return "restart"
-                    elif buffer == " ":
-                        print("[空白鍵] 確認，繼續執行。")
-                        return "continue"
-                    else:
-                        print("[其他鍵] 被當作取消，重錄。")
-                        return "restart"
+                    print("[Enter] 被取消，重錄。")
+                    return "restart"
+                elif ch == '\x1b':
+                    print("[ESC] 離開並不送出。")
+                    return "dont_send_and_quit"
+                elif ch == ' ':
+                    print("[空白鍵] 確認，繼續執行。")
+                    return "continue"
                 else:
                     buffer += ch
         print("[Timeout] 沒有輸入，重錄。")
