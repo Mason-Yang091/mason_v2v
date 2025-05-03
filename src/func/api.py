@@ -125,3 +125,42 @@ def confirm_pipeline(confirm_msg_path: str) -> str:
     with open(confirm_msg_path, "r", encoding="utf-8") as f:
         confirm_msg = f.read()
     return str(confirm_meaning_is_correct(confirm_msg))
+
+
+    
+def check_end(message: str) -> str:
+    prompt = f"""
+        你的任務是判斷一段車與車之間的對話是否應該繼續。請根據**最後一句回覆**來決定，判斷規則如下：
+
+        1. 若句子中包含終結語句，代表對話已結束，回傳 "End"：
+        - 常見終結語句包括：感謝、先這樣、沒事了、結束對話、好、收到、抱歉、下次聊、再聯絡
+
+        2. 若句中包含常見疑問詞，代表對話尚未結束，回傳 "Conti"：
+        - 常見疑問詞包括：為什麼、如何、哪裡、誰、什麼、怎麼
+
+        3. 若句子為祈使語氣（請求對方執行某動作），回傳 "Conti"：
+        - 祈使語氣範例：靠邊停讓我超車、記得開大燈、開快一點
+
+        4. 回覆格式僅能為以下其一（不加任何其他說明）：
+        - "Conti"
+        - "End"
+
+        請根據下方兩台車之間的對話進行判斷，格式如下，每句以 "\n[車牌號碼]：" 分隔：
+
+        ------------
+        {message}
+        ------------
+    """
+    ans = gemini_infer(prompt).strip()
+    print("ans:", ans)
+    return ans
+
+
+
+if __name__ == "__main__":
+    # 基本用法 (自動檢測編碼)
+    junk = """[ABC-1234]：那條巷子可以左轉嗎？  
+    [XYZ-5678]：我不確定耶，你要不要問前面的車看看？
+    [ABC-1234]: 好滴
+"""
+    check_end(junk)
