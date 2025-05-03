@@ -69,6 +69,8 @@ if __name__ == "__main__":
 # server.py
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
+from datetime import datetime
+import json
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -135,6 +137,24 @@ def handle_register(car_id):
     car_sessions[car_id] = request.sid
     include_all_online(car_id)    # 告訴新加入的車目前在線的是誰
 
+    # open communication_history.json and write who enter the server and time
+    now = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+    new_entry = f"{car_id}, {now}"
+
+    history_path = "communication_history.json"
+    try:
+        with open(history_path, "r") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {"car_id and enter_time": []}
+
+    data["car_id and enter_time"].append(new_entry)
+
+    with open(history_path, "w") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print(f"[Log] Appended to history: {new_entry}")    
+
 @socketio.on('disconnect')
 def handle_disconnect():
     print(f"[Disconnected] {request.sid}")
@@ -143,6 +163,22 @@ def handle_disconnect():
             del car_sessions[car_id]
             announceAll_disconnect(car_id)
             break
+    now = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+    new_entry = f"{car_id}, {now}"
+
+    history_path = "communication_history.json"
+    try:
+        with open(history_path, "r") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {"car_id and leave_time": []}
+
+    data["car_id and leave_time"].append(new_entry)
+
+    with open(history_path, "w") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print(f"[Log] Appended to history: {new_entry}")    
 
 @socketio.on('message')
 def handle_message(data):
@@ -158,6 +194,24 @@ def handle_message(data):
     target_id = data.get('target_id')  # 想發給誰
     payload = data.get('payload')      # 要發的內容
     aim = data.get('aim')
+
+    # record the dialog in communication_history.json with time
+    now = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+    new_entry = f"{payload.get("來自的車牌號碼")}, {target_id}, {payload.get("傳達的訊息")}, {now}"
+    history_path = "communication_history.json"
+    try:
+        with open(history_path, "r") as f:
+            write_in_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        write_in_data = {"dialog": []}
+    
+    write_in_data["dialog"].append(new_entry)
+
+    with open(history_path, "w") as f:
+        json.dump(write_in_data, f, ensure_ascii=False, indent=2)
+    
+    print(f"[Log] Appended to history: {new_entry}")
+
 
     if aim == 'txt to json':
         ##call sth for txt to json 

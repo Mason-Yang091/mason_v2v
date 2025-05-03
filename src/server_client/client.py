@@ -101,6 +101,7 @@ def send_txt_for_json(self_id: str, message):
     else:
         print(f"[Offline] Queued message for self json")
         message_queue.append(data)
+
 def send_to(target_id: str, message):
     """
     打包sending thing to a one object -> dict
