@@ -197,7 +197,7 @@ def handle_message(data):
 
     # record the dialog in communication_history.json with time
     now = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
-    new_entry = f"{payload.get("來自的車牌號碼")}, {target_id}, {payload.get("傳達的訊息")}, {now}"
+    new_entry = f"{payload.get('來自的車牌號碼')}, {target_id}, {payload.get('傳達的訊息')}, {now}"
     history_path = "communication_history.json"
     try:
         with open(history_path, "r") as f:
