@@ -205,8 +205,18 @@ def sender_start():
         load_json["傳達訊息"] = message
         # 傳送
         if target_id:
-            send_to(target_id, load_json)
-            print("sent!")
+            if target_id !="所有人":
+                send_to(target_id, load_json)
+                print("sent!")
+            else:
+                # 讀取所有在線車輛的 ID
+                online_cars = get_online_cars()
+                # remove the sender's own car ID from the list
+                online_cars = [car_id for car_id in online_cars if car_id != get_car_id()]
+                # 將訊息發送給所有在線車輛
+                for car_id in online_cars:
+                    send_to(car_id, load_json)
+                    print(f"sent to {car_id}!")
         else:
             print("[Error] 找不到車牌號碼")
     
@@ -281,7 +291,7 @@ def handle_incoming(data):
             json.dump(data, f, ensure_ascii=False, indent=4)
 
         ### there should call a function to do sth
-
+    
 
 
 if __name__== "__main__":
