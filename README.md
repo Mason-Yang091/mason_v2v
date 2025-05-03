@@ -122,5 +122,5 @@ refer to https://www.zeczec.com/projects/carwink?fbclid=IwY2xjawJ4GnZleHRuA2FlbQ
 - numpy
 - playsound (python version must <= 3.11)
 ```
-pip install sounddevice soundfile numpy playsound llama_cpp torch PySide6 pyttsx3 whisper socketio python-socketio python-socketio[client] flask flask_socketio
+pip install sounddevice soundfile numpy playsound llama_cpp torch PySide6 pyttsx3 whisper socketio python-socketio python-socketio[client] flask flask_socketio PyQt5
 ```
